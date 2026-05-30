@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Connect Four Game</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, sans-serif;
+}
+
+body{
+    background:#f4f4f4;
+    text-align:center;
+    padding:20px;
+}
+
+h1{
+    margin-bottom:15px;
+    color:#333;
+}
+
+#status{
+    font-size:20px;
+    margin-bottom:20px;
+    font-weight:bold;
+}
+
+#board{
+    width:520px;
+    margin:auto;
+    display:grid;
+    grid-template-columns:repeat(7, 70px);
+    gap:5px;
+    background:#0066cc;
+    padding:10px;
+    border-radius:10px;
+}
+
+.cell{
+    width:60px;
+    height:60px;
+    background:white;
+    border-radius:50%;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+.red{
+    background:red;
+}
+
+.yellow{
+    background:yellow;
+}
+
+button{
+    margin-top:20px;
+    padding:10px 20px;
+    font-size:16px;
+    border:none;
+    border-radius:5px;
+    cursor:pointer;
+    background:#333;
+    color:white;
+}
+
+button:hover{
+    background:#555;
+}
+
+@media(max-width:600px){
+    #board{
+        width:100%;
+        grid-template-columns:repeat(7, 1fr);
+    }
+
+    .cell{
+        width:45px;
+        height:45px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<h1>🎮 Connect Four Game</h1>
+
+<div id="status">Player RED's Turn</div>
+
+<div id="board"></div>
+
+<button id="restart">Restart Game</button>
+
+<script>
+const rows = 6;
+const cols = 7;
+
+let currentPlayer = "red";
+let gameOver = false;
+
+const board = [];
+const boardElement = document.getElementById("board");
+const statusText = document.getElementById("status");
+
+// Create Board
+for(let r = 0; r < rows; r++){
+    board[r] = [];
+
+    for(let c = 0; c < cols; c++){
+        board[r][c] = "";
+
+        const cell = document.createElement("div");
+        cell.classList.add("cell");
+        cell.dataset.row = r;
+        cell.dataset.col = c;
+
+        cell.addEventListener("click", () => placePiece(c));
+
+        boardElement.appendChild(cell);
+    }
+}
+
+function placePiece(col){
+
+    if(gameOver) return;
+
+    for(let row = rows - 1; row >= 0; row--){
+
+        if(board[row][col] === ""){
+
+            board[row][col] = currentPlayer;
+
+            updateBoard();
+
+            if(checkWinner(row, col)){
+                statusText.innerHTML =
+                    `🏆 ${currentPlayer.toUpperCase()} WINS!`;
+                gameOver = true;
+                return;
+            }
+
+            currentPlayer =
+                currentPlayer === "red" ? "yellow" : "red";
+
+            statusText.innerHTML =
+                `Player ${currentPlayer.toUpperCase()}'s Turn`;
+
+            return;
+        }
+    }
+}
+
+function updateBoard(){
+
+    const cells = document.querySelectorAll(".cell");
+
+    cells.forEach(cell => {
+
+        const row = cell.dataset.row;
+        const col = cell.dataset.col;
+
+        cell.classList.remove("red", "yellow");
+
+        if(board[row][col]){
+            cell.classList.add(board[row][col]);
+        }
+    });
+}
+
+function checkWinner(row, col){
+
+    const player = board[row][col];
+
+    const directions = [
+        [0,1],
+        [1,0],
+        [1,1],
+        [1,-1]
+    ];
+
+    for(let [dr, dc] of directions){
+
+        let count = 1;
+
+        count += countDirection(row, col, dr, dc, player);
+        count += countDirection(row, col, -dr, -dc, player);
+
+        if(count >= 4){
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function countDirection(row, col, dr, dc, player){
+
+    let count = 0;
+
+    let r = row + dr;
+    let c = col + dc;
+
+    while(
+        r >= 0 &&
+        r < rows &&
+        c >= 0 &&
+        c < cols &&
+        board[r][c] === player
+    ){
+        count++;
+        r += dr;
+        c += dc;
+    }
+
+    return count;
+}
+
+document.getElementById("restart").addEventListener("click", () => {
+    location.reload();
+});
+</script>
+
+</body>
+</html>
